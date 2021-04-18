@@ -5,6 +5,23 @@ import pandas as pd
 import time
 
 
+# Values that can be changed
+
+    # current_user = 'yojam4kpfre3ozvia2n73cduw'
+        # any public username can be set
+        
+    # current_user_playlist_ids = getPlaylists(current_user, 0) 
+        # 2nd parameter (offset)
+
+    #current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 1)
+        # 2nd parameter (number of tracks)
+
+    # while len(users) < 50:
+    # for user in users:
+    #     if not(user in root_users):
+    #         if len(users) > 50:
+    #### number represents how many minimum users should be considered/added
+
 def getUsers(user):
     playlist_ids = getPlaylists(user, 0)
 
@@ -118,6 +135,10 @@ current_user_tracks = getFeatures(current_user_track_ids)
 
 print(current_user_tracks)
 
+#current_user_average[]
+#normalize popularity...etc.
+#Find average values for features the matter
+
 # create dataset
 df = pd.DataFrame(current_user_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'])
 df.to_csv("current_user_songs.csv", sep = ',') 
@@ -157,6 +178,7 @@ while len(users) < 50:
 print(users)
 print("LENGTH:", len(users))
 
+#distances[]
 
 
 # users_tracks = []
@@ -165,13 +187,29 @@ for user in users:
     playlist_ids = getPlaylists(user, 0)
     track_ids = getTracks(user, playlist_ids, 1)
     tracks = getFeatures(track_ids)
-    df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
-    csv_name = user + ".csv"
-    df.to_csv(csv_name, sep = ',')
+    # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
+    # csv_name = user + ".csv"
+    # df.to_csv(csv_name, sep = ',')
+
+    #Flory
+    #user_average[]
+    # for the features that matter like popularity and danceability
+            #get average values
+            #add the avg value to user_average[]
+    #  find euclidean distance for current user and user
+    # add user and distance to user_differences 2-tuple array
 
     # users_tracks.append(tracks)
+
+
+#find x minimums  
     
-    
+#distances[]
+# {
+# Flory: 6
+# Cameron: 4
+# }
+
 # print(users_tracks)
 # # create dataset
 # df = pd.DataFrame(users_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
