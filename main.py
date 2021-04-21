@@ -100,14 +100,6 @@ def getTrackFeatures(id):
     except:
         print("no track id")
 
-def getCurrentUserTracks():
-    results = sp.playlist(playlist['id'], fields="tracks,next")
-    tracks = results['tracks']
-    show_tracks(tracks)
-
-    while tracks['next']:
-        tracks = sp.next(tracks)
-        show_tracks(tracks)
 
 scope = "playlist-read-private"
 
