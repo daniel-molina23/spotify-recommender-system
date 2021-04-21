@@ -4,7 +4,7 @@ import cred
 import pandas as pd
 import time
 import statistics
-
+import numpy
 
 # Values that can be changed
 
@@ -38,7 +38,7 @@ def getUsers(user):
 
 def getPlaylists(user, playlist_offset):
     # get user's 50 playlists
-    results = sp.user_playlists(user=user, offset=playlist_offset)
+    results = sp.user_playlists(user=user, offset=playlist_offset, limit=50)
     playlist_ids = []
     for idx, item in enumerate(results['items']):
         playlist = item['id']
@@ -109,7 +109,12 @@ scope = "playlist-read-private"
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.client_id,
                                                client_secret=cred.client_secret, redirect_uri=cred.redirect_url, scope=scope))
 
-current_user = 'yojam4kpfre3ozvia2n73cduw'
+
+# current_user = 'yojam4kpfre3ozvia2n73cduw'
+current_user = input("Input your username here! : ")
+
+recommendation_count = input("How many users would you like me to recommended? : ")
+recommendation_count = int(recommendation_count)
 
 # get current user's 50 playlists
 current_user_playlist_ids = getPlaylists(current_user, 0)
@@ -117,12 +122,12 @@ current_user_playlist_ids = getPlaylists(current_user, 0)
 current_user_playlist_ids2 = getPlaylists(current_user, 50)
 
 # get 100 tracks from those playlists
-current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 1)
+current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 100)
 # get 25 tracks from those playlists
-current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 1)
+current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 25)
 
-for idx in current_user_track_ids2:
-    current_user_track_ids.append(idx)
+# for idx in current_user_track_ids2:
+#     current_user_track_ids.append(idx)
 
 print(len(current_user_track_ids))
 # get all features from each track
@@ -133,17 +138,23 @@ current_user_tracks = pd.DataFrame(current_user_tracks, columns = ['popularity',
 
 current_user_averages = []
 max_col_value = {'popularity': 100,'danceability':1,'acousticness':1,'energy':1,'instrumentalness':1,'loudness':-60,'speechiness':1}
+current_user_variances = []
 
 for column in current_user_tracks.columns:
     if column == 'tempo':
         maxTempo = max(current_user_tracks['tempo'])
         average = statistics.mean(current_user_tracks[column])
         average_norms = average / maxTempo
+
     else:
         average = statistics.mean(current_user_tracks[column])
         average_norms = average / max_col_value[column]
 
     current_user_averages.append(average_norms)
+
+    variance = statistics.variance(current_user_tracks[column])
+    current_user_variances.append(variance)
+
 
 # print(current_user_averages)
 
@@ -177,10 +188,10 @@ for x in current_user_playlist_ids:
 print()
 
 # keep adding owners until around [x] owners are reached
-while len(users) < 50:
+while len(users) < 1000:
     for user in users:
         if not(user in root_users):
-            if len(users) > 50:
+            if len(users) > 1000:
                 break
             else:
                 print("LENGTH:", len(users))
@@ -196,9 +207,9 @@ print("LENGTH:", len(users))
 
 
 distances = []
-    # "user_id": difference_value
 
-
+current_user_averages = numpy.array(current_user_averages)
+current_user_variances = numpy.array(current_user_variances)
 
 for user in users:
 
@@ -207,10 +218,12 @@ for user in users:
     playlist_ids = getPlaylists(user, 0)
     track_ids = getTracks(user, playlist_ids, 1)
     tracks = getFeatures(track_ids)
+    tracks = pd.DataFrame(tracks, columns = ['popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
 
     # Get average values for each feature
     user_averages = []
+    user_variances = []
 
     for column in tracks.columns:
         if column == 'tempo':
@@ -223,45 +236,40 @@ for user in users:
 
         user_averages.append(average_norms)
 
+        variance = statistics.variance(tracks[column])
+        user_variances.append(variance)
 
     # Get difference for each user
+    user_averages = numpy.array(user_averages)
+    averages_distance = round(numpy.linalg.norm(current_user_averages - user_averages), 2)
 
+    user_variances = numpy.array(user_variances)
+    variances_distance = numpy.linalg.norm(current_user_variances - user_variances)
 
-    # cu_avgs[0] - u_avgs[0]....append to user_differences
-    # sum of differences gets added to differences
-        # "user_id": difference_value
-
-    # 
+    # Add as user_id, distance, variance
+    distances.append(tuple([user, averages_distance, variances_distance]))
 
     # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
     # csv_name = user + ".csv"
     # df.to_csv(csv_name, sep = ',')
 
-    #Flory
-    #user_average[]
-    # for the features that matter like popularity and danceability
-            #get average values
-            #add the avg value to user_average[]
-    #  find euclidean distance for current user and user
-    # add user and distance to user_differences 2-tuple array
-
-    # users_tracks.append(tracks)
 
 
-#find x minimums  
-    
-#distances[]
-# {
-# Flory: 6
-# Cameron: 4
-# }
-
-# print(users_tracks)
-# # create dataset
-# df = pd.DataFrame(users_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
-# df.to_csv("users_songs.csv", sep = ',') 
+# Sort first by average_distance, then by variance if tied
+distances.sort(key=lambda x: (x[1], x[2]))
 
 
-   
+# Print out top 3 Recommendations
+while len(distances) < recommendation_count:
+    print("There is a maximum of ", len(distances), "users available to recommend. Please try again.")
+    recommendation_count = input("How many users would you like me to recommended? : ")
+    recommendation_count = int(recommendation_count)
 
+
+
+#recommned the user and include their link
+# count = 3
+
+for x in distances[:recommendation_count]:
+    print(x[0])
 
