@@ -77,11 +77,11 @@ def getTrackFeatures(id):
         features = sp.audio_features(id)
 
         # meta
-        name = meta['name']
-        album = meta['album']['name']
-        artist = meta['album']['artists'][0]['name']
-        release_date = meta['album']['release_date']
-        length = meta['duration_ms']
+        # name = meta['name']
+        # album = meta['album']['name']
+        # artist = meta['album']['artists'][0]['name']
+        # release_date = meta['album']['release_date']
+        # length = meta['duration_ms']
         popularity = meta['popularity']
 
         # features
@@ -93,9 +93,11 @@ def getTrackFeatures(id):
         loudness = features[0]['loudness']
         speechiness = features[0]['speechiness']
         tempo = features[0]['tempo']
-        time_signature = features[0]['time_signature']
+        # time_signature = features[0]['time_signature']
 
-        track = [name, album, artist, release_date, length, popularity, danceability, acousticness, danceability, energy, instrumentalness, liveness, loudness, speechiness, tempo, time_signature]
+        # track = [name, album, artist, release_date, length, popularity, danceability, acousticness, energy, instrumentalness, liveness, loudness, speechiness, tempo, time_signature]
+        track = [popularity, danceability, acousticness, energy, instrumentalness, liveness, loudness, speechiness, tempo]
+
         return track
     except:
         print("no track id")
@@ -111,15 +113,15 @@ current_user = 'yojam4kpfre3ozvia2n73cduw'
 # get current user's 50 playlists
 current_user_playlist_ids = getPlaylists(current_user, 0)
 # get the next 50 playlists
-# current_user_playlist_ids2 = getPlaylists(current_user, 50)
+current_user_playlist_ids2 = getPlaylists(current_user, 50)
 
 # get 100 tracks from those playlists
 current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 1)
 # get 25 tracks from those playlists
-# current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids, 1)
+current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 1)
 
-# for idx in current_user_track_ids2:
-#     current_user_track_ids.append(idx)
+for idx in current_user_track_ids2:
+    current_user_track_ids.append(idx)
 
 print(len(current_user_track_ids))
 # get all features from each track
@@ -132,7 +134,9 @@ print(current_user_tracks)
 #Find average values for features the matter
 
 # create dataset
-df = pd.DataFrame(current_user_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'])
+# df = pd.DataFrame(current_user_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'])
+df = pd.DataFrame(current_user_tracks, columns = ['popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo'])
+
 df.to_csv("current_user_songs.csv", sep = ',') 
 
 
