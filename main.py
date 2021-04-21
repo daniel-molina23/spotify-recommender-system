@@ -132,7 +132,7 @@ print(current_user_tracks)
 #Find average values for features the matter
 
 # create dataset
-df = pd.DataFrame(current_user_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'])
+df = pd.DataFrame(current_user_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'])
 df.to_csv("current_user_songs.csv", sep = ',') 
 
 
@@ -179,7 +179,7 @@ for user in users:
     playlist_ids = getPlaylists(user, 0)
     track_ids = getTracks(user, playlist_ids, 1)
     tracks = getFeatures(track_ids)
-    # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
+    # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
     # csv_name = user + ".csv"
     # df.to_csv(csv_name, sep = ',')
 
