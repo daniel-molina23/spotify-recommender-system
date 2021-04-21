@@ -3,6 +3,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import cred
 import pandas as pd
 import time
+import statistics
 
 
 # Values that can be changed
@@ -89,14 +90,14 @@ def getTrackFeatures(id):
         danceability = features[0]['danceability']
         energy = features[0]['energy']
         instrumentalness = features[0]['instrumentalness']
-        liveness = features[0]['liveness']
+        # liveness = features[0]['liveness']
         loudness = features[0]['loudness']
         speechiness = features[0]['speechiness']
         tempo = features[0]['tempo']
         # time_signature = features[0]['time_signature']
 
         # track = [name, album, artist, release_date, length, popularity, danceability, acousticness, energy, instrumentalness, liveness, loudness, speechiness, tempo, time_signature]
-        track = [popularity, danceability, acousticness, energy, instrumentalness, liveness, loudness, speechiness, tempo]
+        track = [popularity, danceability, acousticness, energy, instrumentalness, loudness, speechiness, tempo]
 
         return track
     except:
@@ -128,14 +129,31 @@ print(len(current_user_track_ids))
 current_user_tracks = getFeatures(current_user_track_ids)
 
 print(current_user_tracks)
+current_user_tracks = pd.DataFrame(current_user_tracks, columns = ['popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-#current_user_average[]
+current_user_averages = []
+max_col_value = {'popularity': 100,'danceability':1,'acousticness':1,'energy':1,'instrumentalness':1,'loudness':-60,'speechiness':1}
+
+for column in current_user_tracks.columns:
+    if column == 'tempo':
+        maxTempo = max(current_user_tracks['tempo'])
+        average = statistics.mean(current_user_tracks[column])
+        average_norms = average / maxTempo
+    else:
+        average = statistics.mean(current_user_tracks[column])
+        average_norms = average / max_col_value[column]
+
+    current_user_averages.append(average_norms)
+
+# print(current_user_averages)
+
+            
 #normalize popularity...etc.
 #Find average values for features the matter
 
 # create dataset
 # df = pd.DataFrame(current_user_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'])
-df = pd.DataFrame(current_user_tracks, columns = ['popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo'])
+df = pd.DataFrame(current_user_tracks, columns = ['popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
 df.to_csv("current_user_songs.csv", sep = ',') 
 
@@ -177,12 +195,44 @@ print("LENGTH:", len(users))
 #distances[]
 
 
-# users_tracks = []
+distances = []
+    # "user_id": difference_value
+
+
+
 for user in users:
+
+    # Get track information for each added user through their 50 playlists
     print("getting track information for " + user)
     playlist_ids = getPlaylists(user, 0)
     track_ids = getTracks(user, playlist_ids, 1)
     tracks = getFeatures(track_ids)
+
+
+    # Get average values for each feature
+    user_averages = []
+
+    for column in tracks.columns:
+        if column == 'tempo':
+            maxTempo = max(tracks['tempo'])
+            average = statistics.mean(tracks[column])
+            average_norms = average / maxTempo
+        else:
+            average = statistics.mean(tracks[column])
+            average_norms = average / max_col_value[column]
+
+        user_averages.append(average_norms)
+
+
+    # Get difference for each user
+
+
+    # cu_avgs[0] - u_avgs[0]....append to user_differences
+    # sum of differences gets added to differences
+        # "user_id": difference_value
+
+    # 
+
     # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
     # csv_name = user + ".csv"
     # df.to_csv(csv_name, sep = ',')
