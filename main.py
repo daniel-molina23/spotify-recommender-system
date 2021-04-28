@@ -126,9 +126,9 @@ current_user_playlist_ids = getPlaylists(current_user, 0)
 current_user_playlist_ids2 = getPlaylists(current_user, 50)
 
 # get 100 tracks from those playlists
-current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 100)
+current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 5)
 # get 25 tracks from those playlists
-current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 25)
+current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 5)
 
 for idx in current_user_track_ids2:
     current_user_track_ids.append(idx)
@@ -193,10 +193,10 @@ for x in current_user_playlist_ids:
 print()
 
 # keep adding owners until around [x] owners are reached
-while (len(users) < 1000) and not((len(users) + 1) == len(root_users)):
+while (len(users) < 100) and not((len(users) + 1) == len(root_users)):
     for user in users:
         if not(user in root_users) and not(user == current_user):
-            if len(users) > 1000:
+            if len(users) > 100:
                 break
             else:
                 print("LENGTH:", len(users))
@@ -219,51 +219,52 @@ current_user_variances = numpy.array(current_user_variances)
 
 # for user in users:
 for i in range(len(users)):
-    try:
-        # Get track information for each added user through their 50 playlists
-        print(str(i) + ". getting track information for " + users[i])
-        playlist_ids = getPlaylists(users[i], 0)
-        track_ids = getTracks(users[i], playlist_ids, 100)
-        tracks = getFeatures(track_ids, users[i])
-        for track_info in tracks:
-            all_user_information.append(track_info)
-        tracks = pd.DataFrame(tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
+    # try:
+    # Get track information for each added user through their 50 playlists
+    print(str(i) + ". getting track information for " + users[i])
+    playlist_ids = getPlaylists(users[i], 0)
+    track_ids = getTracks(users[i], playlist_ids, 100)
+    tracks = getFeatures(track_ids, users[i])
+    for track_info in tracks:
+        all_user_information.append(track_info)
+    tracks = pd.DataFrame(tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-        # Get average values for each feature
-        user_averages = []
-        user_variances = []
+    # Get average values for each feature
+    user_averages = []
+    user_variances = []
 
-        for column in tracks.columns:
-            if not(column == 'user_id') and not(column == 'artist'):
-                if column == 'tempo':
-                    maxTempo = max(tracks['tempo'])
-                    average = statistics.mean(tracks[column])
-                    average_norms = average / maxTempo
-                else:
-                    average = statistics.mean(tracks[column])
-                    average_norms = average / max_col_value[column]
+    for column in tracks.columns:
+        if not(column == 'user_id') and not(column == 'artist'):
+            if column == 'tempo':
+                maxTempo = max(tracks['tempo'])
+                average = statistics.mean(tracks[column])
+                average_norms = average / maxTempo
+            else:
+                average = statistics.mean(tracks[column])
+                average_norms = average / max_col_value[column]
 
-                user_averages.append(average_norms)
+            user_averages.append(average_norms)
 
-                variance = statistics.variance(tracks[column])
-                user_variances.append(variance)
+            variance = statistics.variance(tracks[column])
+            user_variances.append(variance)
 
-        # Get difference for each user
-        user_averages = numpy.array(user_averages)
-        averages_distance = round(numpy.linalg.norm(current_user_averages - user_averages), 2)
+    # Get difference for each user
+    user_averages = numpy.array(user_averages)
+    averages_distance = round(numpy.linalg.norm(current_user_averages - user_averages), 2)
 
-        user_variances = numpy.array(user_variances)
-        variances_distance = numpy.linalg.norm(current_user_variances - user_variances)
+    user_variances = numpy.array(user_variances)
+    variances_distance = numpy.linalg.norm(current_user_variances - user_variances)
 
-        # Add as user_id, distance, variance
-        distances.append(tuple([users[i], averages_distance, variances_distance]))
-        print()
-        # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
-        # csv_name = user + ".csv"
-        # df.to_csv(csv_name, sep = ',')
-    except:
-        print(users[i] + " has no songs")
-        continue
+    # Add as user_id, distance, variance
+    distances.append(tuple([users[i], averages_distance, variances_distance]))
+    print()
+    # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
+    # csv_name = user + ".csv"
+    # df.to_csv(csv_name, sep = ',')
+
+    # except:
+    #     print(users[i] + " has no songs")
+    #     continue
 
 all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 all_user_information.to_csv("all_user_information.csv", sep=',')
