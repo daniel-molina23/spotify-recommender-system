@@ -72,7 +72,7 @@ def getFeatures(track_ids, user_id):
             print("song not found on spotify")
         else:
             tracks.append(track)
-        print(i)
+        # print(str(i) + ": " + user_id)
     return tracks
 
 def getTrackFeatures(id, user_id):
@@ -221,7 +221,7 @@ current_user_variances = numpy.array(current_user_variances)
 for i in range(len(users)):
     try:
         # Get track information for each added user through their 50 playlists
-        print(i + ". getting track information for " + users[i])
+        print(str(i) + ". getting track information for " + users[i])
         playlist_ids = getPlaylists(users[i], 0)
         track_ids = getTracks(users[i], playlist_ids, 100)
         tracks = getFeatures(track_ids, users[i])
@@ -257,12 +257,13 @@ for i in range(len(users)):
 
         # Add as user_id, distance, variance
         distances.append(tuple([users[i], averages_distance, variances_distance]))
-
+        print()
         # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
         # csv_name = user + ".csv"
         # df.to_csv(csv_name, sep = ',')
     except:
-        print("user has no songs")
+        print(users[i] + " has no songs")
+        continue
 
 all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 all_user_information.to_csv("all_user_information.csv", sep=',')
@@ -272,7 +273,7 @@ distances.sort(key=lambda x: (x[1], x[2]))
 
 # Print out top 3 Recommendations
 while len(distances) < recommendation_count:
-    print("There is a maximum of ", len(distances), "users available to recommend. Please try again.")
+    print("There is a maximum of", len(distances), "users available to recommend. Please try again.")
     recommendation_count = input("How many users would you like me to recommended? : ")
     recommendation_count = int(recommendation_count)
 
