@@ -219,55 +219,56 @@ current_user_variances = numpy.array(current_user_variances)
 
 # for user in users:
 for i in range(len(users)):
-    # Get track information for each added user through their 50 playlists
-    print("getting track information for " + users[i])
-    playlist_ids = getPlaylists(users[i], 0)
-    track_ids = getTracks(users[i], playlist_ids, 100)
-    tracks = getFeatures(track_ids, users[i])
-    for track_info in tracks:
-        all_user_information.append(track_info)
-    tracks = pd.DataFrame(tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
+    try:
+        # Get track information for each added user through their 50 playlists
+        print(i + ". getting track information for " + users[i])
+        playlist_ids = getPlaylists(users[i], 0)
+        track_ids = getTracks(users[i], playlist_ids, 100)
+        tracks = getFeatures(track_ids, users[i])
+        for track_info in tracks:
+            all_user_information.append(track_info)
+        tracks = pd.DataFrame(tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-    # Get average values for each feature
-    user_averages = []
-    user_variances = []
+        # Get average values for each feature
+        user_averages = []
+        user_variances = []
 
-    for column in tracks.columns:
-        if not(column == 'user_id') and not(column == 'artist'):
-            if column == 'tempo':
-                maxTempo = max(tracks['tempo'])
-                average = statistics.mean(tracks[column])
-                average_norms = average / maxTempo
-            else:
-                average = statistics.mean(tracks[column])
-                average_norms = average / max_col_value[column]
+        for column in tracks.columns:
+            if not(column == 'user_id') and not(column == 'artist'):
+                if column == 'tempo':
+                    maxTempo = max(tracks['tempo'])
+                    average = statistics.mean(tracks[column])
+                    average_norms = average / maxTempo
+                else:
+                    average = statistics.mean(tracks[column])
+                    average_norms = average / max_col_value[column]
 
-            user_averages.append(average_norms)
+                user_averages.append(average_norms)
 
-            variance = statistics.variance(tracks[column])
-            user_variances.append(variance)
+                variance = statistics.variance(tracks[column])
+                user_variances.append(variance)
 
-    # Get difference for each user
-    user_averages = numpy.array(user_averages)
-    averages_distance = round(numpy.linalg.norm(current_user_averages - user_averages), 2)
+        # Get difference for each user
+        user_averages = numpy.array(user_averages)
+        averages_distance = round(numpy.linalg.norm(current_user_averages - user_averages), 2)
 
-    user_variances = numpy.array(user_variances)
-    variances_distance = numpy.linalg.norm(current_user_variances - user_variances)
+        user_variances = numpy.array(user_variances)
+        variances_distance = numpy.linalg.norm(current_user_variances - user_variances)
 
-    # Add as user_id, distance, variance
-    distances.append(tuple([users[i], averages_distance, variances_distance]))
+        # Add as user_id, distance, variance
+        distances.append(tuple([users[i], averages_distance, variances_distance]))
 
-    # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
-    # csv_name = user + ".csv"
-    # df.to_csv(csv_name, sep = ',')
-
+        # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
+        # csv_name = user + ".csv"
+        # df.to_csv(csv_name, sep = ',')
+    except:
+        print("user has no songs")
 
 all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 all_user_information.to_csv("all_user_information.csv", sep=',')
 
 # Sort first by average_distance, then by variance if tied
 distances.sort(key=lambda x: (x[1], x[2]))
-
 
 # Print out top 3 Recommendations
 while len(distances) < recommendation_count:
