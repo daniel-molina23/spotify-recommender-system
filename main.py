@@ -5,6 +5,7 @@ import pandas as pd
 import time
 import statistics
 import numpy
+from mpi4py import MPI
 
 # Values that can be changed
 
@@ -23,6 +24,7 @@ import numpy
     #         if len(users) > 50:
     #### number represents how many minimum users should be considered/added
 
+
 def getUsers(user):
     playlist_ids = getPlaylists(user, 0)
 
@@ -31,10 +33,12 @@ def getUsers(user):
             playlist = sp.user_playlist(user, x)
             owner = playlist['owner']['id']
             if (not(owner == current_user) and not(owner in users)):
-                print("added:", owner)
+                # print("added:", owner)
                 users.append(owner)
         except:
-            print("playlist not found")
+            pass
+            # print("playlist not found")
+
 
 def getPlaylists(user, playlist_offset):
     # get user's 50 playlists
@@ -44,6 +48,7 @@ def getPlaylists(user, playlist_offset):
         playlist = item['id']
         playlist_ids.append(playlist)
     return playlist_ids
+
 
 def getTracks(user, playlist_ids, track_limit):
     # get all tracks from given playlists
@@ -57,10 +62,12 @@ def getTracks(user, playlist_ids, track_limit):
             try:
                 track_ids.append(item['track']['id'])
             except:
-                print("no ID present")
+                # print("no ID present")
+                pass
 
-    print("len(track_ids)", len(track_ids))
+    # print("len(track_ids)", len(track_ids))
     return track_ids
+
 
 def getFeatures(track_ids, user_id):
     # get all features from each track
@@ -69,11 +76,13 @@ def getFeatures(track_ids, user_id):
         # time.sleep(.5)
         track = getTrackFeatures(track_ids[i], user_id)
         if track == -1:
-            print("song not found on spotify")
+            pass
+            # print("song not found on spotify")
         else:
             tracks.append(track)
-        print(i)
+        # print(i)
     return tracks
+
 
 def getTrackFeatures(id, user_id):
     try:
@@ -104,9 +113,13 @@ def getTrackFeatures(id, user_id):
 
         return track
     except:
-        print("no track id")
+        # print("no track id")
         return -1
 
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
 
 scope = "playlist-read-private"
 
@@ -117,8 +130,14 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.client_id,
 current_user = 'yojam4kpfre3ozvia2n73cduw'
 # current_user = input("Input your username here! : ")
 
-recommendation_count = input("How many users would you like me to recommended? : ")
-recommendation_count = int(recommendation_count)
+recommendation_count = 0
+if rank == 0:
+    recommendation_count = input("How many users would you like me to recommended? : ")
+    recommendation_count = int(recommendation_count)
+    for i in range(1, size):
+        comm.send(recommendation_count, dest=i)
+if rank != 0:
+    recommendation_count = comm.recv(source=0)
 
 # get current user's 50 playlists
 current_user_playlist_ids = getPlaylists(current_user, 0)
@@ -126,14 +145,16 @@ current_user_playlist_ids = getPlaylists(current_user, 0)
 current_user_playlist_ids2 = getPlaylists(current_user, 50)
 
 # get 100 tracks from those playlists
-current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 100)
+current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 100)    # RIGHT HERE original: 100
 # get 25 tracks from those playlists
-current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 25)
+current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 25)   # RIGHT HERE original: 25
 
 for idx in current_user_track_ids2:
     current_user_track_ids.append(idx)
 
-print(len(current_user_track_ids))
+# if rank == 0:
+#     print(len(current_user_track_ids))
+
 # get all features from each track
 current_user_tracks = getFeatures(current_user_track_ids, current_user)
 
@@ -179,34 +200,40 @@ root_users = []
 
 # add owners of each playlist the current user follows
 root_users.append(current_user)
-print("getting owners of " + current_user + "'s playlists...")
+# if rank == 0:
+#     print("getting owners of " + current_user + "'s playlists...")
 for x in current_user_playlist_ids:
     try: 
         playlist = sp.user_playlist(current_user, x)
         owner = playlist['owner']['id']
         if (not(owner == current_user) and not(owner in users)):
-            print("added:", owner)
+            # if rank == 0:
+            #     print("added:", owner)
             users.append(owner)
     except:
-        print("playlist not found")
-
-print()
+        # print("playlist not found")
+        pass
+# if rank == 0:
+#     print()
 
 # keep adding owners until around [x] owners are reached
-while (len(users) < 1000) and not((len(users) + 1) == len(root_users)):
+while (len(users) < 1000) and not((len(users) + 1) == len(root_users)): # RIGHT HERE original < 1000
     for user in users:
         if not(user in root_users) and not(user == current_user):
-            if len(users) > 1000:
+            if len(users) > 1000: # RIGHT HERE original > 1000
                 break
             else:
-                print("LENGTH:", len(users))
-                print("getting owners of " + user + "'s playlists...")
+                # if rank == 0:
+                #     print("LENGTH:", len(users))
+                #     print("getting owners of " + user + "'s playlists...")
                 getUsers(user)
-                print()
+                # if rank == 0:
+                #     print()
                 root_users.append(user)
 
-print(users)
-print("LENGTH:", len(users))
+# if rank == 0:
+#     print(users)
+#     print("LENGTH:", len(users))
 
 #distances[]
 
@@ -218,49 +245,58 @@ current_user_averages = numpy.array(current_user_averages)
 current_user_variances = numpy.array(current_user_variances)
 
 # for user in users:
-for i in range(len(users)):
-    # Get track information for each added user through their 50 playlists
-    print("getting track information for " + users[i])
-    playlist_ids = getPlaylists(users[i], 0)
-    track_ids = getTracks(users[i], playlist_ids, 100)
-    tracks = getFeatures(track_ids, users[i])
-    for track_info in tracks:
-        all_user_information.append(track_info)
-    tracks = pd.DataFrame(tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
+for i in range(rank, len(users), size):
+    try:
+        # Get track information for each added user through their 50 playlists
+        print("getting track information for " + users[i])
+        playlist_ids = getPlaylists(users[i], 0)
+        track_ids = getTracks(users[i], playlist_ids, 100)  # RIGHT HERE original: 100
+        tracks = getFeatures(track_ids, users[i])
+        for track_info in tracks:
+            all_user_information.append(track_info)
+        tracks = pd.DataFrame(tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-    # Get average values for each feature
-    user_averages = []
-    user_variances = []
+        # Get average values for each feature
+        user_averages = []
+        user_variances = []
 
-    for column in tracks.columns:
-        if not(column == 'user_id') and not(column == 'artist'):
-            if column == 'tempo':
-                maxTempo = max(tracks['tempo'])
-                average = statistics.mean(tracks[column])
-                average_norms = average / maxTempo
-            else:
-                average = statistics.mean(tracks[column])
-                average_norms = average / max_col_value[column]
+        for column in tracks.columns:
+            if not(column == 'user_id') and not(column == 'artist'):
+                if column == 'tempo':
+                    maxTempo = max(tracks['tempo'])
+                    average = statistics.mean(tracks[column])
+                    average_norms = average / maxTempo
+                else:
+                    average = statistics.mean(tracks[column])
+                    average_norms = average / max_col_value[column]
 
-            user_averages.append(average_norms)
+                user_averages.append(average_norms)
 
-            variance = statistics.variance(tracks[column])
-            user_variances.append(variance)
+                variance = statistics.variance(tracks[column])
+                user_variances.append(variance)
 
-    # Get difference for each user
-    user_averages = numpy.array(user_averages)
-    averages_distance = round(numpy.linalg.norm(current_user_averages - user_averages), 2)
+        # Get difference for each user
+        user_averages = numpy.array(user_averages)
+        averages_distance = round(numpy.linalg.norm(current_user_averages - user_averages), 2)
 
-    user_variances = numpy.array(user_variances)
-    variances_distance = numpy.linalg.norm(current_user_variances - user_variances)
+        user_variances = numpy.array(user_variances)
+        variances_distance = numpy.linalg.norm(current_user_variances - user_variances)
 
-    # Add as user_id, distance, variance
-    distances.append(tuple([users[i], averages_distance, variances_distance]))
+        # Add as user_id, distance, variance
+        distances.append(tuple([users[i], averages_distance, variances_distance]))
 
-    # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
-    # csv_name = user + ".csv"
-    # df.to_csv(csv_name, sep = ',')
+        # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
+        # csv_name = user + ".csv"
+        # df.to_csv(csv_name, sep = ',')
+    except:
+        pass
+        # print("user has no songs")
 
+if rank != 0:
+    comm.send(distances, dest=0)
+if rank == 0:
+    for i in range(1, size):
+        distances += comm.recv(source=i)
 
 all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 all_user_information.to_csv("all_user_information.csv", sep=',')
@@ -269,17 +305,21 @@ all_user_information.to_csv("all_user_information.csv", sep=',')
 distances.sort(key=lambda x: (x[1], x[2]))
 
 
-# Print out top 3 Recommendations
-while len(distances) < recommendation_count:
-    print("There is a maximum of ", len(distances), "users available to recommend. Please try again.")
-    recommendation_count = input("How many users would you like me to recommended? : ")
-    recommendation_count = int(recommendation_count)
+# # Print out top 3 Recommendations
+# while len(distances) < recommendation_count:
+#     print("There is a maximum of ", len(distances), "users available to recommend. Please try again.")
+#     recommendation_count = input("How many users would you like me to recommended? : ")
+#     recommendation_count = int(recommendation_count)
 
 
 
 #recommned the user and include their link
 # count = 3
 
-for x in distances[:recommendation_count]:
-    print(x[0])
+if rank == 0:
+    output = open("output.txt", "w")
+    for x in distances[:recommendation_count]:
+        print(x[0])
+        output.write(str(x[0]) + "\n")
+    output.close()
 
