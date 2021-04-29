@@ -131,32 +131,45 @@ current_user = 'yojam4kpfre3ozvia2n73cduw'
 
 recommendation_count = 0
 if rank == 0:
-    recommendation_count = input("How many users would you like me to recommended? : ")
-    recommendation_count = int(recommendation_count)
+    # recommendation_count = input("How many users would you like me to recommended? : ")
+    # recommendation_count = int(recommendation_count)
+    recommendation_count = 3
     for i in range(1, size):
         comm.send(recommendation_count, dest=i)
 if rank != 0:
     recommendation_count = comm.recv(source=0)
 
+current_user_track_ids = []
 # get current user's 50 playlists
 current_user_playlist_ids = getPlaylists(current_user, 0)
 # get the next 50 playlists
 current_user_playlist_ids2 = getPlaylists(current_user, 50)
+if rank == 0:
+    # get 100 tracks from those playlists
+    current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 100)    # HERE original 100
+    # get 25 tracks from those playlists
+    current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 25)   # HERE original 25
 
-# get 100 tracks from those playlists
-current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 1)    # HERE original 100
-# get 25 tracks from those playlists
-current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 1)   # HERE original 25
+    for idx in current_user_track_ids2:
+        current_user_track_ids.append(idx)
 
-for idx in current_user_track_ids2:
-    current_user_track_ids.append(idx)
+    for i in range(1, size):
+        comm.send(current_user_track_ids, dest=i)
+if rank != 0:
+    current_user_track_ids += comm.recv(source=0)
 
-# print(len(current_user_track_ids))
-# get all features from each track
-current_user_tracks = getFeatures(current_user_track_ids, current_user)
+current_user_tracks = []
+if rank == 0:
+    # print(len(current_user_track_ids))
+    # get all features from each track
+    current_user_tracks = getFeatures(current_user_track_ids, current_user)
 
-# print(len(current_user_tracks))
-current_user_tracks = pd.DataFrame(current_user_tracks, columns=['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
+    # print(len(current_user_tracks))
+    current_user_tracks = pd.DataFrame(current_user_tracks, columns=['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
+    for i in range(1, size):
+        comm.send(current_user_tracks, dest=i)
+if rank != 0:
+    current_user_tracks = comm.recv(source=0)
 
 current_user_averages = []
 max_col_value = {'popularity': 100, 'danceability': 1, 'acousticness': 1, 'energy': 1, 'instrumentalness': 1, 'loudness': -60, 'speechiness': 1}
@@ -188,39 +201,44 @@ for column in current_user_tracks.columns:
 # df = pd.DataFrame(current_user_tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'])
 # df = pd.DataFrame(current_user_tracks, columns = ['popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-current_user_tracks.to_csv("current_user_songs.csv", sep=',')
+if rank == 0:
+    current_user_tracks.to_csv("current_user_songs.csv", sep=',')
 
 users = []
 root_users = []
 
 # add owners of each playlist the current user follows
-root_users.append(current_user)
-# print("getting owners of " + current_user + "'s playlists...")
-for x in current_user_playlist_ids:
-    try:
-        playlist = sp.user_playlist(current_user, x)
-        owner = playlist['owner']['id']
-        if (not (owner == current_user) and not (owner in users)):
-            # print("added:", owner)
-            users.append(owner)
-    except:
-        continue
-        # print("playlist not found")
+if rank == 0:
+    root_users.append(current_user)
+    # print("getting owners of " + current_user + "'s playlists...")
+    for x in current_user_playlist_ids:
+        try:
+            playlist = sp.user_playlist(current_user, x)
+            owner = playlist['owner']['id']
+            if (not (owner == current_user) and not (owner in users)):
+                # print("added:", owner)
+                users.append(owner)
+        except:
+            continue
+            # print("playlist not found")
 
-# print()
-
-# keep adding owners until around [x] owners are reached
-while (len(users) < 1) and not ((len(users) + 1) == len(root_users)):    # HERE original < 1000
-    for user in users:
-        if not (user in root_users) and not (user == current_user):
-            if len(users) > 1:   # HERE original > 1000
-                break
-            else:
-                # print("LENGTH:", len(users))
-                # print("getting owners of " + user + "'s playlists...")
-                getUsers(user)
-                # print()
-                root_users.append(user)
+    # keep adding owners until around [x] owners are reached
+    while (len(users) < 1000) and not ((len(users) + 1) == len(root_users)):    # HERE original < 1000
+        for user in users:
+            if not (user in root_users) and not (user == current_user):
+                if len(users) > 1000:   # HERE original > 1000
+                    break
+                else:
+                    # print("LENGTH:", len(users))
+                    # print("getting owners of " + user + "'s playlists...")
+                    getUsers(user)
+                    # print()
+                    root_users.append(user)
+if rank == 0:
+    for i in range(1, size):
+        comm.send(users, dest=i)
+if rank != 0:
+    users += comm.recv(source=0)
 
 # print(users)
 # print("LENGTH:", len(users))
@@ -240,7 +258,7 @@ for i in range(rank, len(users), size):
         # Get track information for each added user through their 50 playlists
         print(str(i + 1) + ". getting track information for " + users[i])
         playlist_ids = getPlaylists(users[i], 0)
-        track_ids = getTracks(users[i], playlist_ids, 1)  # HERE original 100
+        track_ids = getTracks(users[i], playlist_ids, 100)  # HERE original 100
         tracks = getFeatures(track_ids, users[i])
         if len(tracks) > 5:
             for track_info in tracks:
@@ -280,7 +298,7 @@ for i in range(rank, len(users), size):
             # csv_name = user + ".csv"
             # df.to_csv(csv_name, sep = ',')
     except:
-        print(str(i) + ". " + users[i] + " has no songs")
+        print(str(i + 1) + ". " + users[i] + " has no songs")
         # print()
         continue
 
