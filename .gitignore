@@ -1,0 +1,11 @@
+# ignore changes in these files
+/__pycache__
+
+.cache
+
+# ignore clustering visuals
+/graph_results
+
+# ignore these datasets, repeated from 'data-analysis-code' branch
+data_new_range.csv.zip
+data_range_norm.csv.gz
