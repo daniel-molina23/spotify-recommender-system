@@ -30,9 +30,10 @@ def getUsers(user):
         try: 
             playlist = sp.user_playlist(user, x)
             owner = playlist['owner']['id']
-            if (not(owner == current_user) and not(owner in users)):
+            if (not(owner == current_user) and not(owner in users_set)):
                 print("added:", owner)
                 users.append(owner)
+                users_set.add(owner)
         except:
             print("playlist not found")
 
@@ -130,8 +131,10 @@ current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 5)
 # get 25 tracks from those playlists
 current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 5)
 
-for idx in current_user_track_ids2:
-    current_user_track_ids.append(idx)
+# join both lists into the first list name
+current_user_playlist_ids.extend(current_user_playlist_ids2)
+current_user_track_ids.extend(current_user_track_ids2)
+
 
 print(len(current_user_track_ids))
 # get all features from each track
@@ -173,30 +176,33 @@ for column in current_user_tracks.columns:
 
 current_user_tracks.to_csv("current_user_songs.csv", sep = ',') 
 
-
+# O(1) checking with set(), example: ' user in set '
 users = []
+users_set = set()
 root_users = []
+root_users_set = set()
 
 # add owners of each playlist the current user follows
 root_users.append(current_user)
 print("getting owners of " + current_user + "'s playlists...")
 for x in current_user_playlist_ids:
-    try: 
+    try:
         playlist = sp.user_playlist(current_user, x)
         owner = playlist['owner']['id']
-        if (not(owner == current_user) and not(owner in users)):
+        if (not(owner == current_user) and not(owner in users_set)): # O(1) checking with set
             print("added:", owner)
             users.append(owner)
+            users_set.add(owner)
     except:
         print("playlist not found")
 
 print()
 
 # keep adding owners until around [x] owners are reached
-while (len(users) < 100) and not((len(users) + 1) == len(root_users)):
+while (len(users) < 1000) and not((len(users) + 1) == len(root_users)):
     for user in users:
-        if not(user in root_users) and not(user == current_user):
-            if len(users) > 100:
+        if not(user in root_users_set) and not(user == current_user): # O(1) checking with set
+            if len(users) > 1000:
                 break
             else:
                 print("LENGTH:", len(users))
@@ -204,11 +210,14 @@ while (len(users) < 100) and not((len(users) + 1) == len(root_users)):
                 getUsers(user)
                 print()
                 root_users.append(user)
+                root_users_set.add(user)
 
 print(users)
 print("LENGTH:", len(users))
 
 #distances[]
+# df = pd.DataFrame(users, columns=['users'])
+# df.to_csv("users.csv", sep = ',')
 
 
 distances = []
