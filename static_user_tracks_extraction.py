@@ -8,7 +8,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import cred
 
 start = 0
-end = 4
+end = 250
 
 def getPlaylists(user, playlist_offset):
     # get user's 50 playlists
