@@ -186,7 +186,7 @@ for user in users[start:end]:
     # Get track information for each added user through their 50 playlists
     print(str(i) + ": getting track information for " + user)
     playlist_ids = getPlaylists(user, 0)
-    track_ids = getTracks(user, playlist_ids, 5)
+    track_ids = getTracks(user, playlist_ids, 100) # 100 everyone
     tracks = getFeatures(track_ids, user)
     for track_info in tracks:
         all_user_information.append(track_info)
@@ -231,7 +231,7 @@ for user in users[start:end]:
     i += 1
 
 all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
-all_user_information.to_csv("all_user_information.csv", sep=',')
+all_user_information.to_csv("all_user_information.csv.zip", sep=',', compression="zip")
 
 distances = pd.DataFrame(distances, columns=['user', 'averages_distance', 'variances_distance'])
 distances.to_csv("distances.csv")
