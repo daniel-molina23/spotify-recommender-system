@@ -116,38 +116,40 @@ current_user_tracks = getFeatures(current_user_track_ids, current_user)
 # print(len(current_user_tracks))
 current_user_tracks = pd.DataFrame(current_user_tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-# current_user_averages = [0.5129367088607595, 0.6513367088607595, 0.3637548564556962, 0.5473326582278482, 0.07036136215189874, 0.14567535864978903, 0.13214683544303799, 0.5656079031673216]
-current_user_averages = []
+# current_user_averages = []
 max_col_value = {'popularity': 100,'danceability':1,'acousticness':1,'energy':1,'instrumentalness':1,'loudness':-60,'speechiness':1}
-current_user_variances = []
-# current_user_variances = [766.614046135064, 0.026159868572897257, 0.09436195217495115, 0.04121500235712909, 0.04988230055926973, 18.710522798393626, 0.015334866303411939, 870.3264635849514]
+# current_user_variances = []
 
-#start
-for column in current_user_tracks.columns:
-    if not(column == 'user_id') and not(column == 'artist'):
-        print('getting averages from ', column)
-        if column == 'tempo':
-            maxTempo = max(current_user_tracks['tempo'])
-            average = statistics.mean(current_user_tracks[column])
-            average_norms = average / maxTempo
-
-        else:
-            average = statistics.mean(current_user_tracks[column])
-            average_norms = average / max_col_value[column]
-
-        current_user_averages.append(average_norms)
-
-        variance = statistics.variance(current_user_tracks[column])
-        current_user_variances.append(variance)
+current_user_averages = [0.4382300339192106, 0.6568518347209374, 0.34813078211532533, 0.5577589577551649, 0.053833063731113164, 0.1443700740055504, 0.14644465001541782, 0.5645482048764167]
+current_user_variances = [715.7459605018392, 0.02373772756834775, 0.09174929249884411, 0.040100934925131775, 0.03800893408124727, 15.365590780831603, 0.018815291676334906, 817.1962030521762]
 
 
-print(current_user_averages)
-print(current_user_variances)
+# #start
+# for column in current_user_tracks.columns:
+#     if not(column == 'user_id') and not(column == 'artist'):
+#         print('getting averages from ', column)
+#         if column == 'tempo':
+#             maxTempo = max(current_user_tracks['tempo'])
+#             average = statistics.mean(current_user_tracks[column])
+#             average_norms = average / maxTempo
+
+#         else:
+#             average = statistics.mean(current_user_tracks[column])
+#             average_norms = average / max_col_value[column]
+
+#         current_user_averages.append(average_norms)
+
+#         variance = statistics.variance(current_user_tracks[column])
+#         current_user_variances.append(variance)
 
 
-import sys
-sys.exit()
-#end
+# print(current_user_averages)
+# print(current_user_variances)
+
+
+# import sys
+# sys.exit()
+# #end
 
 
 
