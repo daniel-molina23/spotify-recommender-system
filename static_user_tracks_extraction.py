@@ -94,31 +94,31 @@ current_user = 'yojam4kpfre3ozvia2n73cduw'
 
 
 
-# get current user's 50 playlists
-current_user_playlist_ids = getPlaylists(current_user, 0)
-# get the next 50 playlists
-current_user_playlist_ids2 = getPlaylists(current_user, 50)
+# # get current user's 50 playlists
+# current_user_playlist_ids = getPlaylists(current_user, 0)
+# # get the next 50 playlists
+# current_user_playlist_ids2 = getPlaylists(current_user, 50)
 
-# get 100 tracks from those playlists
-current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 100) #100 for everyone
-# get 25 tracks from those playlists
-current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 25) #25 for everyone
+# # get 100 tracks from those playlists
+# current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 100) #100 for everyone
+# # get 25 tracks from those playlists
+# current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 25) #25 for everyone
 
-# join both lists into the first list name
-current_user_playlist_ids.extend(current_user_playlist_ids2)
-current_user_track_ids.extend(current_user_track_ids2)
+# # join both lists into the first list name
+# current_user_playlist_ids.extend(current_user_playlist_ids2)
+# current_user_track_ids.extend(current_user_track_ids2)
 
 
-print(len(current_user_track_ids))
-# get all features from each track
-current_user_tracks = getFeatures(current_user_track_ids, current_user)
+# print(len(current_user_track_ids))
+# # get all features from each track
+# current_user_tracks = getFeatures(current_user_track_ids, current_user)
 
-# print(len(current_user_tracks))
-current_user_tracks = pd.DataFrame(current_user_tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
+# # print(len(current_user_tracks))
+# current_user_tracks = pd.DataFrame(current_user_tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-# current_user_averages = []
+# # current_user_averages = []
 max_col_value = {'popularity': 100,'danceability':1,'acousticness':1,'energy':1,'instrumentalness':1,'loudness':-60,'speechiness':1}
-# current_user_variances = []
+# # current_user_variances = []
 
 current_user_averages = [0.4382300339192106, 0.6568518347209374, 0.34813078211532533, 0.5577589577551649, 0.053833063731113164, 0.1443700740055504, 0.14644465001541782, 0.5645482048764167]
 current_user_variances = [715.7459605018392, 0.02373772756834775, 0.09174929249884411, 0.040100934925131775, 0.03800893408124727, 15.365590780831603, 0.018815291676334906, 817.1962030521762]
@@ -234,4 +234,4 @@ all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 
 all_user_information.to_csv("all_user_information.csv.zip", sep=',', compression="zip")
 
 distances = pd.DataFrame(distances, columns=['user', 'averages_distance', 'variances_distance'])
-distances.to_csv("distances.csv")
+distances.to_csv("distances.csv", index=False)
