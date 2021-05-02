@@ -292,6 +292,8 @@ while len(distances) < recommendation_count:
 #recommned the user and include their link
 # count = 3
 
+counter = 1
 for x in distances[:recommendation_count]:
-    print(x[0])
+    print(str(counter) + ") " + x[0])
+    counter+=1
 
