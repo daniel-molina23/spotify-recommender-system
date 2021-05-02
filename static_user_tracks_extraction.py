@@ -101,9 +101,9 @@ current_user_playlist_ids = getPlaylists(current_user, 0)
 current_user_playlist_ids2 = getPlaylists(current_user, 50)
 
 # get 100 tracks from those playlists
-current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 5)
+current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 5) #100 for everyone
 # get 25 tracks from those playlists
-current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 5)
+current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 5) #25 for everyone
 
 # join both lists into the first list name
 current_user_playlist_ids.extend(current_user_playlist_ids2)
@@ -117,11 +117,13 @@ current_user_tracks = getFeatures(current_user_track_ids, current_user)
 # print(len(current_user_tracks))
 current_user_tracks = pd.DataFrame(current_user_tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-current_user_averages = []
+current_user_averages = [0.5129367088607595, 0.6513367088607595, 0.3637548564556962, 0.5473326582278482, 0.07036136215189874, 0.14567535864978903, 0.13214683544303799, 0.5656079031673216]
+# current_user_averages = []
 max_col_value = {'popularity': 100,'danceability':1,'acousticness':1,'energy':1,'instrumentalness':1,'loudness':-60,'speechiness':1}
-current_user_variances = []
+# current_user_variances = []
+current_user_variances = [766.614046135064, 0.026159868572897257, 0.09436195217495115, 0.04121500235712909, 0.04988230055926973, 18.710522798393626, 0.015334866303411939, 870.3264635849514]
 
-#start
+# #start
 # for column in current_user_tracks.columns:
 #     if not(column == 'user_id') and not(column == 'artist'):
 #         print('getting averages from ', column)
@@ -141,7 +143,12 @@ current_user_variances = []
 
 
 # print(current_user_averages)
-#end
+# print(current_user_variances)
+
+
+# import sys
+# sys.exit()
+# #end
 
 # normalize popularity...etc.
 # Find average values for features the matter
@@ -176,7 +183,7 @@ for user in users[start:end]:
     # Get track information for each added user through their 50 playlists
     print(str(i) + ": getting track information for " + user)
     playlist_ids = getPlaylists(user, 0)
-    track_ids = getTracks(user, playlist_ids, 100)
+    track_ids = getTracks(user, playlist_ids, 5)
     tracks = getFeatures(track_ids, user)
     for track_info in tracks:
         all_user_information.append(track_info)
