@@ -33,11 +33,11 @@ def getUsers(user):
             playlist = sp.user_playlist(user, x)
             owner = playlist['owner']['id']
             if (not (owner == current_user) and not (owner in users)):
-                # print("added:", owner)
-                users.append(owner)
+                print("added:", owner)
+                # users.append(owner)
         except:
-            continue
-            # print("playlist not found")
+            # continue
+            print("playlist not found")
 
 
 def getPlaylists(user, playlist_offset):
@@ -62,10 +62,10 @@ def getTracks(user, playlist_ids, track_limit):
             try:
                 track_ids.append(item['track']['id'])
             except:
-                continue
-                # print("no ID present")
+                # continue
+                print("no ID present")
 
-    # print("len(track_ids)", len(track_ids))
+    print("len(track_ids)", len(track_ids))
     return track_ids
 
 
@@ -76,8 +76,8 @@ def getFeatures(track_ids, user_id):
         # time.sleep(.5)
         track = getTrackFeatures(track_ids[i], user_id)
         if track == -1:
-            continue
-            # print("song not found on spotify")
+            # continue
+            print("song not found on spotify")
         else:
             tracks.append(track)
         # print(str(i) + ": " + user_id)
@@ -109,12 +109,11 @@ def getTrackFeatures(id, user_id):
         # time_signature = features[0]['time_signature']
 
         # track = [name, album, artist, release_date, length, popularity, danceability, acousticness, energy, instrumentalness, liveness, loudness, speechiness, tempo, time_signature]
-        track = [user_id, artist, popularity, danceability, acousticness, energy, instrumentalness, loudness,
-                 speechiness, tempo]
+        track = [user_id, artist, popularity, danceability, acousticness, energy, instrumentalness, loudness, speechiness, tempo]
 
         return track
     except:
-        # print("no track id")
+        print("no track id")
         return -1
 
 
@@ -122,9 +121,15 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-scope = "playlist-read-private"
-
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.client_id, client_secret=cred.client_secret, redirect_uri=cred.redirect_url, scope=scope))
+sp = None
+if rank == 0:
+    scope = "playlist-read-private"
+    # scope = "user-library-read,playlist-modify-public"
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.client_id, client_secret=cred.client_secret, redirect_uri=cred.redirect_url, scope=scope))
+    for i in range(1, size):
+        comm.send(sp, dest=i)
+if rank != 0:
+    sp = comm.recv(source=0)
 
 current_user = 'yojam4kpfre3ozvia2n73cduw'
 # current_user = input("Input your username here! : ")
@@ -160,7 +165,7 @@ if rank != 0:
 
 current_user_tracks = []
 if rank == 0:
-    # print(len(current_user_track_ids))
+    print(len(current_user_track_ids))
     # get all features from each track
     current_user_tracks = getFeatures(current_user_track_ids, current_user)
 
@@ -210,17 +215,17 @@ root_users = []
 # add owners of each playlist the current user follows
 if rank == 0:
     root_users.append(current_user)
-    # print("getting owners of " + current_user + "'s playlists...")
+    print("getting owners of " + current_user + "'s playlists...")
     for x in current_user_playlist_ids:
         try:
             playlist = sp.user_playlist(current_user, x)
             owner = playlist['owner']['id']
             if (not (owner == current_user) and not (owner in users)):
-                # print("added:", owner)
+                print("added:", owner)
                 users.append(owner)
         except:
-            continue
-            # print("playlist not found")
+            # continue
+            print("playlist not found")
 
     # keep adding owners until around [x] owners are reached
     while (len(users) < 1000) and not ((len(users) + 1) == len(root_users)):    # HERE original < 1000
@@ -229,10 +234,10 @@ if rank == 0:
                 if len(users) > 1000:   # HERE original > 1000
                     break
                 else:
-                    # print("LENGTH:", len(users))
-                    # print("getting owners of " + user + "'s playlists...")
+                    print("LENGTH:", len(users))
+                    print("getting owners of " + user + "'s playlists...")
                     getUsers(user)
-                    # print()
+                    print()
                     root_users.append(user)
 if rank == 0:
     for i in range(1, size):
@@ -240,8 +245,8 @@ if rank == 0:
 if rank != 0:
     users += comm.recv(source=0)
 
-# print(users)
-# print("LENGTH:", len(users))
+print(users)
+print("LENGTH:", len(users))
 
 # distances[]
 
@@ -293,13 +298,13 @@ for i in range(rank, len(users), size):
 
             # Add as user_id, distance, variance
             distances.append(tuple([users[i], averages_distance, variances_distance]))
-            # print()
+            print()
             # df = pd.DataFrame(tracks, columns = ['name', 'album', 'artist', 'release_date', 'length', 'popularity', 'danceability', 'acousticness', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'time_signature'],)
             # csv_name = user + ".csv"
             # df.to_csv(csv_name, sep = ',')
     except:
         print(str(i + 1) + ". " + users[i] + " has no songs")
-        # print()
+        print()
         continue
 
 if rank != 0:
