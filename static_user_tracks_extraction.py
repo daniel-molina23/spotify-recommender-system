@@ -31,7 +31,7 @@ def getTracks(user, playlist_ids, track_limit):
             try:
                 track_ids.append(item['track']['id'])
             except:
-                print("no ID present")
+                pass
 
     print("len(track_ids)", len(track_ids))
     return track_ids
@@ -43,7 +43,7 @@ def getFeatures(track_ids, user_id):
         # time.sleep(.5)
         track = getTrackFeatures(track_ids[i], user_id)
         if track == -1:
-            print("song not found on spotify")
+            pass
         else:
             tracks.append(track)
         # print(str(i) + ": " + user_id)
@@ -78,7 +78,6 @@ def getTrackFeatures(id, user_id):
 
         return track
     except:
-        print("no track id")
         return -1
 
 
@@ -101,9 +100,9 @@ current_user_playlist_ids = getPlaylists(current_user, 0)
 current_user_playlist_ids2 = getPlaylists(current_user, 50)
 
 # get 100 tracks from those playlists
-current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 5) #100 for everyone
+current_user_track_ids = getTracks(current_user, current_user_playlist_ids, 100) #100 for everyone
 # get 25 tracks from those playlists
-current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 5) #25 for everyone
+current_user_track_ids2 = getTracks(current_user, current_user_playlist_ids2, 25) #25 for everyone
 
 # join both lists into the first list name
 current_user_playlist_ids.extend(current_user_playlist_ids2)
@@ -117,11 +116,13 @@ current_user_tracks = getFeatures(current_user_track_ids, current_user)
 # print(len(current_user_tracks))
 current_user_tracks = pd.DataFrame(current_user_tracks, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
 
-current_user_averages = [0.5129367088607595, 0.6513367088607595, 0.3637548564556962, 0.5473326582278482, 0.07036136215189874, 0.14567535864978903, 0.13214683544303799, 0.5656079031673216]
 # current_user_averages = []
 max_col_value = {'popularity': 100,'danceability':1,'acousticness':1,'energy':1,'instrumentalness':1,'loudness':-60,'speechiness':1}
 # current_user_variances = []
-current_user_variances = [766.614046135064, 0.026159868572897257, 0.09436195217495115, 0.04121500235712909, 0.04988230055926973, 18.710522798393626, 0.015334866303411939, 870.3264635849514]
+
+current_user_averages = [0.4382300339192106, 0.6568518347209374, 0.34813078211532533, 0.5577589577551649, 0.053833063731113164, 0.1443700740055504, 0.14644465001541782, 0.5645482048764167]
+current_user_variances = [715.7459605018392, 0.02373772756834775, 0.09174929249884411, 0.040100934925131775, 0.03800893408124727, 15.365590780831603, 0.018815291676334906, 817.1962030521762]
+
 
 # #start
 # for column in current_user_tracks.columns:
@@ -149,6 +150,8 @@ current_user_variances = [766.614046135064, 0.026159868572897257, 0.094361952174
 # import sys
 # sys.exit()
 # #end
+
+
 
 # normalize popularity...etc.
 # Find average values for features the matter
@@ -183,7 +186,7 @@ for user in users[start:end]:
     # Get track information for each added user through their 50 playlists
     print(str(i) + ": getting track information for " + user)
     playlist_ids = getPlaylists(user, 0)
-    track_ids = getTracks(user, playlist_ids, 5)
+    track_ids = getTracks(user, playlist_ids, 100) # 100 everyone
     tracks = getFeatures(track_ids, user)
     for track_info in tracks:
         all_user_information.append(track_info)
@@ -228,6 +231,7 @@ for user in users[start:end]:
     i += 1
 
 all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
-all_user_information.to_csv("all_user_information.csv", sep=',')
+all_user_information.to_csv("all_user_information.csv.zip", sep=',', compression="zip")
 
-
+distances = pd.DataFrame(distances, columns=['user', 'averages_distance', 'variances_distance'])
+distances.to_csv("distances.csv")
