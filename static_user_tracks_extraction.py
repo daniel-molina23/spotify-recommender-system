@@ -7,8 +7,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import cred
 
-start = 0
-end = 250
+start = 250
+end = 500
 
 def getPlaylists(user, playlist_offset):
     # get user's 50 playlists
@@ -23,7 +23,10 @@ def getTracks(user, playlist_ids, track_limit):
     # get all tracks from given playlists
     track_ids = []
     for x in playlist_ids:
-        tracks = sp.user_playlist_tracks(user=user, playlist_id=x, limit=track_limit)
+        try:
+              tracks = sp.user_playlist_tracks(user=user, playlist_id=x, limit=track_limit)
+        except:
+              pass
         # print(track)
         # print()
         # print()
@@ -32,6 +35,7 @@ def getTracks(user, playlist_ids, track_limit):
                 track_ids.append(item['track']['id'])
             except:
                 pass
+
 
     print("len(track_ids)", len(track_ids))
     return track_ids
@@ -82,6 +86,7 @@ def getTrackFeatures(id, user_id):
 
 
 scope = "playlist-read-private"
+# scope = "user-library-read,playlist-modify-public"
 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=cred.client_id,
                                                client_secret=cred.client_secret, redirect_uri=cred.redirect_url, scope=scope))
@@ -187,6 +192,9 @@ for user in users[start:end]:
     print(str(i) + ": getting track information for " + user)
     playlist_ids = getPlaylists(user, 0)
     track_ids = getTracks(user, playlist_ids, 100) # 100 everyone
+    if len(track_ids) == 0:
+        i += 1
+        continue
     tracks = getFeatures(track_ids, user)
     for track_info in tracks:
         all_user_information.append(track_info)
