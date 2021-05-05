@@ -7,8 +7,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import cred
 
-start = 750
-end = 850
+start = 500
+end = 750
 
 def getPlaylists(user, playlist_offset):
     # get user's 50 playlists
@@ -237,7 +237,7 @@ for user in users[start:end]:
     i += 1
 
 all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
-all_user_information.to_csv("all_user_information.csv.zip", sep=',', compression="zip")
+all_user_information.to_csv("all_user_information500750.csv.zip", sep=',', compression="zip")
 
 distances = pd.DataFrame(distances, columns=['user', 'averages_distance', 'variances_distance'])
-distances.to_csv("distances.csv", index=False)
+distances.to_csv("distances500750.csv", index=False)
