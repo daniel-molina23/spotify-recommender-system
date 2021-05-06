@@ -7,8 +7,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import cred
 
-start = 750
-end = 850
+start = 650
+end = 750
 
 def getPlaylists(user, playlist_offset):
     # get user's 50 playlists
@@ -28,14 +28,14 @@ def getTracks(user, playlist_ids, track_limit):
     for x in playlist_ids:
         try:
             tracks = sp.user_playlist_tracks(user=user, playlist_id=x, limit=track_limit)
-            # print(track)
-            # print()
-            # print()
             for item in tracks['items']:
-                track_ids.append(item['track']['id'])
+                try:
+                    track_ids.append(item['track']['id'])
+                except:
+                    pass
         except:
-            pass
-
+              pass
+    
     print("len(track_ids)", len(track_ids))
     return track_ids
 
@@ -237,7 +237,7 @@ for user in users[start:end]:
     i += 1
 
 all_user_information = pd.DataFrame(all_user_information, columns = ['user_id', 'artist', 'popularity', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'loudness', 'speechiness', 'tempo'])
-all_user_information.to_csv("all_user_information.csv.zip", sep=',', compression="zip")
+all_user_information.to_csv("all_user_information_%d_%d.csv.zip"%(start,end), sep=',', compression="zip")
 
 distances = pd.DataFrame(distances, columns=['user', 'averages_distance', 'variances_distance'])
-distances.to_csv("distances.csv", index=False)
+distances.to_csv("distances_%d_%d.csv"%(start,end), index=False)
