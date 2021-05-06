@@ -1,0 +1,9 @@
+# ignore changes to these files or directories
+.cache
+/__pycache__
+/graph_results
+# data no longer needed
+/other data
+# ignore these datasets: not needed to commit
+data_new_range.csv.zip
+data_range_norm.csv.gz
