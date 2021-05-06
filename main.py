@@ -50,16 +50,16 @@ def getTracks(user, playlist_ids, track_limit):
     # get all tracks from given playlists
     track_ids = []
     for x in playlist_ids:
-        tracks = sp.user_playlist_tracks(user=user, playlist_id=x, limit=track_limit)
-        # print(track)
-        # print()
-        # print()
-        for item in tracks['items']:
-            try:
-                track_ids.append(item['track']['id'])
-            except:
-                print("no ID present")
-
+        try:
+            tracks = sp.user_playlist_tracks(user=user, playlist_id=x, limit=track_limit)
+            for item in tracks['items']:
+                try:
+                    track_ids.append(item['track']['id'])
+                except:
+                    pass
+        except:
+              pass
+    
     print("len(track_ids)", len(track_ids))
     return track_ids
 
