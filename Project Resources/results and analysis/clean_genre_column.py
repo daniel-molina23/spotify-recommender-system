@@ -2,7 +2,7 @@ import pandas as pd
 import time
 
 # extract info
-users_info = pd.read_csv('../results and analysis/all_user_information_with_genre.csv.zip', compression='zip', index_col=0)
+users_info = pd.read_csv('all_user_information_with_genre.csv.zip', compression='zip', index_col=0)
 print(users_info.head())
 print(users_info.columns)
 
