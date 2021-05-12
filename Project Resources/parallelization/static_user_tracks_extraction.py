@@ -162,7 +162,7 @@ current_user_variances = [715.7459605018392, 0.02373772756834775, 0.091749292498
 
 # current_user_tracks.to_csv("current_user_songs.csv", sep = ',')
 
-users = pd.read_csv("users.csv")
+users = pd.read_csv("../results and analysis/users.csv")
 users = [x for x in users['users']]
 
 print("LENGTH of USERS:", len(users))
