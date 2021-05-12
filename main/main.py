@@ -1,3 +1,10 @@
+# Main program to be run to recommend a user-specified number of users.
+#   current_user should be filled with the current user's Spotify ID.
+#   When the program is run, it will begin by asking the user for how many
+#       users the program should recommend
+
+
+
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import cred
