@@ -1,7 +1,7 @@
 import pandas as pd
 
 #read the 'distances_total.csv' dataset using pandas
-df = pd.read_csv('distances_total.csv', sep=',')
+df = pd.read_csv('results and analysis\distances_total.csv', sep=',')
 
 # Sort first by average_distance, then by variance if tied
 sorted = (df.sort_values(by=['averages_distance', 'variances_distance'], ascending=True))
